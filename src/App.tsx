@@ -9,10 +9,12 @@ import {
   QuizType,
   type FetchQuizParams,
   type QuizCategory,
+  type QuizItem,
 } from "./types/quis-types";
 import { SetQuestionCategory } from "./features/SetQuestionCategory";
 import { QuizAPI } from "./api/quiz-api";
 import { SetQuestionDifficulty } from "./features/SetQuestionDifficulty";
+import { PlayQuiz } from "./features/PlayQuiz";
 
 enum Step {
   SetQuestionQty,
@@ -26,6 +28,7 @@ export default function App() {
   const enableLogo = false;
 
   const [step, setStep] = useState<Step>(Step.SetQuestionQty); // Quiz step state
+  const [quiz, setQuiz] = useState<QuizItem[]>([]); // Quiz state (questions list)
 
   // Quis params state
   const [quizParams, setQuizParams] = useState<FetchQuizParams>({
@@ -34,8 +37,6 @@ export default function App() {
     difficulty: QuizDifficulty.Mixed,
     type: QuizType.Multiple,
   });
-
-  console.log(quizParams);
 
   // Quiz category state
   const [categories, setCategories] = useState<QuizCategory[]>([]);
@@ -67,12 +68,23 @@ export default function App() {
   };
 
   // Set difficulty step
-  const changeQuestionDifficulty = (difficulty: QuizDifficulty) => {
-    setQuizParams((prev) => ({
-      ...prev,
+  const changeQuestionDifficulty = async (difficulty: QuizDifficulty) => {
+    const params = {
+      ...quizParams,
       difficulty, // overwrite only difficulty
-    }));
-    setStep(Step.Play);
+    };
+
+    setQuizParams(params);
+    const quizResp = await QuizAPI.fetchQuiz(params);
+    if (quizResp.length > 0) {
+      setQuiz(quizResp); // Store loaded quiz items
+      setStep(Step.Play);
+    } else {
+      alert(
+        `Couldn't find ${params.amount} questions for this categories, restarting game`
+      );
+      setStep(Step.SetQuestionQty);
+    }
   };
 
   // Step rendering
@@ -98,7 +110,7 @@ export default function App() {
       case Step.SetQuestionDifficulty:
         return <SetQuestionDifficulty onClickNext={changeQuestionDifficulty} />;
       case Step.Play:
-        return <></>;
+        return <PlayQuiz quiz={quiz} />;
       case Step.ScoreScreen:
         return <></>;
     }
