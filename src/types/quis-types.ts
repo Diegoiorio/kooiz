@@ -1,19 +1,28 @@
 export interface FetchQuizParams {
-  amountOfQuestion: number;
+  amount: number;
   category: string;
   difficulty: QuizDifficulty;
   type: QuizType;
 }
 
-enum QuizDifficulty {
+export enum QuizDifficulty {
   Mixed = "",
   Easy = "easy",
   Medium = "medium",
   Hard = "hard",
 }
 
-enum QuizType {
+export enum QuizType {
   Mixed = "",
   Multiple = "multiple",
   Boolean = "boolean",
+}
+
+export interface QuizCategory {
+  id: number;
+  name: string;
+}
+
+export interface FetchQuizCategoriesResponse {
+  trivia_categories: QuizCategory[];
 }

@@ -1,11 +1,14 @@
-import { Flex, Heading, Slider } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { Button, Flex, Heading, Slider } from "@chakra-ui/react";
+import { useState } from "react";
+import { Icon } from "@chakra-ui/react";
+import { HiOutlineCube } from "react-icons/hi";
 
 interface Props {
   max: number;
   min: number;
   step: number;
   defaultValue: number;
+  onClickNext: (amount: number) => void;
 }
 
 type mark = {
@@ -16,18 +19,13 @@ type mark = {
 export default function SetQuestionQty(p: Props) {
   const [sliderValue, setSliderValue] = useState<number>(p.defaultValue);
 
-  // Calculate marks without any state (is not necessary)
-  const marks: mark[] = useMemo(() => {
-    const res: mark[] = [];
-    let min = p.min;
-
-    while (min <= p.max) {
-      res.push({ value: min, label: min.toString() });
-      min += p.step;
-    }
-
-    return res;
-  }, [p.max, p.min, p.step]);
+  // Calculate marks directly in the component
+  const marks: mark[] = [];
+  let min = p.min;
+  while (min <= p.max) {
+    marks.push({ value: min, label: min.toString() });
+    min += p.step;
+  }
 
   return (
     <>
@@ -43,7 +41,9 @@ export default function SetQuestionQty(p: Props) {
           step={p.step}
           colorPalette="teal"
           defaultValue={[sliderValue]}
-          onChange={(val) => setSliderValue(val)}
+          onValueChange={(details) => {
+            setSliderValue(details.value[0]); // details.value is number[]
+          }}
         >
           <Slider.Control>
             <Slider.Track>
@@ -53,6 +53,19 @@ export default function SetQuestionQty(p: Props) {
             <Slider.Marks marks={marks} />
           </Slider.Control>
         </Slider.Root>
+      </Flex>
+
+      <Flex direction="column" alignItems="center">
+        <Button
+          onClick={() => p.onClickNext(sliderValue)}
+          position="absolute"
+          top="80%"
+        >
+          Set Category
+          <Icon size="lg">
+            <HiOutlineCube />
+          </Icon>
+        </Button>
       </Flex>
     </>
   );
