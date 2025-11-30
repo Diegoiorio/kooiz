@@ -15,6 +15,7 @@ import { SetQuestionCategory } from "./features/SetQuestionCategory";
 import { QuizAPI } from "./api/quiz-api";
 import { SetQuestionDifficulty } from "./features/SetQuestionDifficulty";
 import { PlayQuiz } from "./features/PlayQuiz";
+import { Score } from "./features/Score";
 
 enum Step {
   SetQuestionQty,
@@ -29,6 +30,7 @@ export default function App() {
 
   const [step, setStep] = useState<Step>(Step.SetQuestionQty); // Quiz step state
   const [quiz, setQuiz] = useState<QuizItem[]>([]); // Quiz state (questions list)
+  const [history, setHistory] = useState<boolean[]>([]); // Quiz results status
 
   // Quis params state
   const [quizParams, setQuizParams] = useState<FetchQuizParams>({
@@ -110,9 +112,24 @@ export default function App() {
       case Step.SetQuestionDifficulty:
         return <SetQuestionDifficulty onClickNext={changeQuestionDifficulty} />;
       case Step.Play:
-        return <PlayQuiz quiz={quiz} />;
+        return (
+          <PlayQuiz
+            quiz={quiz}
+            onFinished={(history_: boolean[]) => {
+              setHistory(history_);
+              setStep(Step.ScoreScreen);
+            }}
+          />
+        );
       case Step.ScoreScreen:
-        return <></>;
+        return (
+          <Score
+            history={history}
+            onNext={() => {
+              setStep(Step.SetQuestionQty);
+            }}
+          />
+        );
     }
   };
 

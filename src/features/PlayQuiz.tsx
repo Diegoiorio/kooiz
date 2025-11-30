@@ -13,7 +13,10 @@ import validAnim from "../assets/valid.json?url";
 import invalidAnim from "../assets/invalid.json?url";
 import { Timer } from "./Timer";
 
-export function PlayQuiz(p: { quiz: QuizItem[] }) {
+export function PlayQuiz(p: {
+  quiz: QuizItem[];
+  onFinished: (history: boolean[]) => void;
+}) {
   const questionSecTimer = 20;
   const [currentQuizItemIndex, setCurrentQuizItemIndex] = useState<number>(0);
 
@@ -68,8 +71,12 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
 
     // This function will be called when the animation is completed.
     function onComplete() {
-      setQuestionStatus("unanswered");
-      setCurrentQuizItemIndex(currentQuizItemIndex + 1);
+      if (currentQuizItemIndex < p.quiz.length - 1) {
+        setQuestionStatus("unanswered");
+        setCurrentQuizItemIndex(currentQuizItemIndex + 1);
+      } else {
+        p.onFinished(history);
+      }
     }
 
     // This function will be called when the animation starts playing.
