@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import type { DotLottiePlayer, QuizItem } from "../types/quis-types";
-import { Flex, Heading, RadioGroup, SimpleGrid } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Heading,
+  HStack,
+  RadioGroup,
+  SimpleGrid,
+} from "@chakra-ui/react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import validAnim from "../assets/valid.json?url";
 import invalidAnim from "../assets/invalid.json?url";
@@ -9,10 +16,20 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
   const [currentQuizItemIndex, setCurrentQuizItemIndex] = useState<number>(0);
 
   const currentQuizItem = p.quiz[currentQuizItemIndex];
-  const availableAnswers: string[] = [
-    currentQuizItem.correct_answer,
-    ...currentQuizItem.incorrect_answers,
-  ];
+
+  const [history, setHistory] = useState<boolean[]>([]);
+
+  // Available answers handler
+  const [availableAnswers, setAvailableAnswers] = useState<string[]>([]);
+
+  useEffect(() => {
+    setAvailableAnswers(
+      [
+        currentQuizItem.correct_answer,
+        ...currentQuizItem.incorrect_answers,
+      ].sort(() => Math.random() - 0.5) // Shuffle answers
+    );
+  }, [currentQuizItemIndex]);
 
   const [answer, setAnswer] = useState<string | null>(null);
   const [questionStatus, setQuestionStatus] = useState<
@@ -25,11 +42,13 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
 
   useEffect(() => {
     if (answer) {
-      if (isValidAnswer(answer)) {
+      const isValid = isValidAnswer(answer);
+      if (isValid) {
         setQuestionStatus("valid");
       } else {
         setQuestionStatus("invalid");
       }
+      setHistory([...history, isValid]);
     }
   }, [answer]);
 
@@ -70,6 +89,31 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
     setDotLottie(dotLottie);
   };
 
+  const renderProgressBar = () => {
+    console.log(history);
+
+    return (
+      <HStack>
+        {p.quiz.map((quizItem, i) => {
+          return (
+            <Box
+              key={i}
+              height={3}
+              width={25}
+              backgroundColor={
+                i >= currentQuizItemIndex
+                  ? "gray.300"
+                  : history[i]
+                  ? "green.400"
+                  : "red.400"
+              }
+            />
+          );
+        })}
+      </HStack>
+    );
+  };
+
   return (
     <Flex
       direction={"column"}
@@ -78,13 +122,16 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
       margin={"auto"}
       width={"80%"}
     >
+      {renderProgressBar()}
       <Heading fontSize={"3xl"} mt={100} mb={20}>
         {decodeHtmlEntities(currentQuizItem.question)}
       </Heading>
       <RadioGroup.Root
         value={answer ?? ""}
         onValueChange={(answer) => {
-          setAnswer(answer.value);
+          if (questionStatus === "unanswered") {
+            setAnswer(answer.value);
+          }
         }}
         display={"flex"}
         justifyContent={"center"}
@@ -98,7 +145,15 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
             >
               <RadioGroup.ItemHiddenInput />
               <RadioGroup.ItemIndicator />
-              <RadioGroup.ItemText>
+              <RadioGroup.ItemText
+                color={
+                  questionStatus === "unanswered"
+                    ? "black"
+                    : isValidAnswer(availableAnswer)
+                    ? "green"
+                    : "red"
+                }
+              >
                 {decodeHtmlEntities(availableAnswer)}
               </RadioGroup.ItemText>
             </RadioGroup.Item>
@@ -109,6 +164,7 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
       {questionStatus !== "unanswered" && (
         <DotLottieReact
           src={questionStatus === "valid" ? validAnim : invalidAnim}
+          speed={questionStatus === "valid" ? 5 : 2}
           loop={false}
           style={{ marginTop: 100, height: 150 }}
           autoplay
