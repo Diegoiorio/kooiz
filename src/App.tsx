@@ -1,4 +1,4 @@
-import { Flex, Image, Box } from "@chakra-ui/react";
+import { Flex, Image, Box, Spinner } from "@chakra-ui/react";
 import logoImg from "./assets/logo.png";
 import bubbleImage from "./assets/bubble.png";
 import "./global.css";
@@ -18,6 +18,7 @@ import { PlayQuiz } from "./features/PlayQuiz";
 import { Score } from "./features/Score";
 
 enum Step {
+  Loading,
   SetQuestionQty,
   SetQuestionCategory,
   SetQuestionDifficulty,
@@ -28,7 +29,7 @@ enum Step {
 export default function App() {
   const enableLogo = false;
 
-  const [step, setStep] = useState<Step>(Step.SetQuestionQty); // Quiz step state
+  const [step, setStep] = useState<Step>(Step.Loading); // Quiz step state
   const [quiz, setQuiz] = useState<QuizItem[]>([]); // Quiz state (questions list)
   const [history, setHistory] = useState<boolean[]>([]); // Quiz results status
 
@@ -48,6 +49,7 @@ export default function App() {
         { id: -1, name: "Mixed" },
         ...(await QuizAPI.fetchCatregories()),
       ]);
+      setStep(Step.SetQuestionQty);
     })();
   }, []);
 
@@ -92,6 +94,19 @@ export default function App() {
   // Step rendering
   const renderScreenByStep = () => {
     switch (step) {
+      case Step.Loading:
+        return (
+          <Flex
+            top={0}
+            position={"absolute"}
+            justify={"center"}
+            alignItems={"center"}
+            minH={"100vh"}
+            width={"100%"}
+          >
+            <Spinner />
+          </Flex>
+        );
       case Step.SetQuestionQty:
         return (
           <SetQuestionQty
