@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { QuizItem } from "../types/quis-types";
+import type { DotLottiePlayer, QuizItem } from "../types/quis-types";
 import { Flex, Heading, RadioGroup, SimpleGrid } from "@chakra-ui/react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import validAnim from "../assets/valid.json?url";
@@ -14,7 +14,7 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
     ...currentQuizItem.incorrect_answers,
   ];
 
-  const [answer, setAnswer] = useState<string | null>();
+  const [answer, setAnswer] = useState<string | null>(null);
   const [questionStatus, setQuestionStatus] = useState<
     "valid" | "invalid" | "unanswered"
   >("unanswered");
@@ -40,30 +40,33 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
   }
 
   // Dot Lottie handler
-  const [dotLottie, setDotLottie] = useState(null);
+  const [dotLottie, setDotLottie] = useState<DotLottiePlayer | null>(null);
 
   useEffect(() => {
+    if (!dotLottie) return;
+
     // This function will be called when the animation is completed.
     function onComplete() {
-      console.log("Animation completed");
       setQuestionStatus("unanswered");
       setCurrentQuizItemIndex(currentQuizItemIndex + 1);
     }
 
-    // Listen to events emitted by the DotLottie instance when it is available.
-    if (dotLottie) {
-      dotLottie.addEventListener("complete", onComplete);
+    // This function will be called when the animation starts playing.
+    function onPlay() {
+      console.log("Animation start playing");
     }
 
+    // Add event listener on dotLottie component
+    dotLottie.addEventListener("complete", onComplete);
+    dotLottie.addEventListener("play", onPlay);
+
     return () => {
-      // Remove event listeners when the component is unmounted.
-      if (dotLottie) {
-        dotLottie.addEventListener("complete", onComplete);
-      }
+      dotLottie.removeEventListener("complete", onComplete);
+      dotLottie.removeEventListener("play", onPlay);
     };
   }, [dotLottie]);
 
-  const dotLottieRefCallback = (dotLottie) => {
+  const dotLottieRefCallback = (dotLottie: DotLottiePlayer | null) => {
     setDotLottie(dotLottie);
   };
 
@@ -79,7 +82,7 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
         {decodeHtmlEntities(currentQuizItem.question)}
       </Heading>
       <RadioGroup.Root
-        value={answer}
+        value={answer ?? ""}
         onValueChange={(answer) => {
           setAnswer(answer.value);
         }}
@@ -102,7 +105,6 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
           ))}
         </SimpleGrid>
       </RadioGroup.Root>
-      <p>{questionStatus}</p>
 
       {questionStatus !== "unanswered" && (
         <DotLottieReact

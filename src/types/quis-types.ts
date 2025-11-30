@@ -40,3 +40,8 @@ export interface QuizItem {
   correct_answer: string;
   incorrect_answers: string[];
 }
+
+export type DotLottiePlayer = {
+  addEventListener: (event: string, cb: () => void) => void;
+  removeEventListener: (event: string, cb: () => void) => void;
+};
