@@ -11,8 +11,10 @@ import {
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import validAnim from "../assets/valid.json?url";
 import invalidAnim from "../assets/invalid.json?url";
+import { Timer } from "./Timer";
 
 export function PlayQuiz(p: { quiz: QuizItem[] }) {
+  const questionSecTimer = 20;
   const [currentQuizItemIndex, setCurrentQuizItemIndex] = useState<number>(0);
 
   const currentQuizItem = p.quiz[currentQuizItemIndex];
@@ -72,7 +74,7 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
 
     // This function will be called when the animation starts playing.
     function onPlay() {
-      console.log("Animation start playing");
+      // Could be useful for future implementations
     }
 
     // Add event listener on dotLottie component
@@ -90,8 +92,6 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
   };
 
   const renderProgressBar = () => {
-    console.log(history);
-
     return (
       <HStack>
         {p.quiz.map((quizItem, i) => {
@@ -114,6 +114,11 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
     );
   };
 
+  const failQuestion = () => {
+    setHistory([...history, false]);
+    setQuestionStatus("invalid");
+  };
+
   return (
     <Flex
       direction={"column"}
@@ -122,6 +127,12 @@ export function PlayQuiz(p: { quiz: QuizItem[] }) {
       margin={"auto"}
       width={"80%"}
     >
+      {questionStatus === "unanswered" && (
+        <Box position={"absolute"} top={50} right={50}>
+          <Timer max={questionSecTimer} onFinished={failQuestion} />
+        </Box>
+      )}
+
       {renderProgressBar()}
       <Heading fontSize={"3xl"} mt={100} mb={20}>
         {decodeHtmlEntities(currentQuizItem.question)}
