@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import type { DotLottiePlayer, QuizItem } from "../types/quis-types";
+import type { QuizItem } from "../types/quis-types";
 import { Box, Flex, Heading, RadioGroup, SimpleGrid } from "@chakra-ui/react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import validAnim from "../assets/valid.json?url";
@@ -7,6 +6,7 @@ import invalidAnim from "../assets/invalid.json?url";
 import { Timer } from "./Timer";
 import { ProgressBar } from "../components/ProgressBar";
 import { usePlayQuizState } from "../hooks/usePlayQuizState";
+import { PlayQuizUtilities } from "../utilities/playQuizUtilities";
 
 export function PlayQuiz(p: {
   quiz: QuizItem[];
@@ -27,28 +27,14 @@ export function PlayQuiz(p: {
     currentQuizItem,
   } = usePlayQuizState(p.quiz, p.onFinished);
 
-  const decodeHtmlEntities = (str: string) => {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = str;
-    return txt.value;
-  };
-
-  const dotLottieRefCallback = (dotLottie: DotLottiePlayer | null) => {
-    setDotLottie(dotLottie);
-  };
-
-  const failQuestion = () => {
-    setHistory([...history, false]);
-    setQuestionStatus("invalid");
-  };
-
-  const generateQuestionColor = (availableAnswer: string) => {
-    return questionStatus === "unanswered"
-      ? "black"
-      : isValidAnswer(availableAnswer)
-      ? "green"
-      : "red";
-  };
+  const playQuizUtility = new PlayQuizUtilities(
+    isValidAnswer,
+    setDotLottie,
+    setHistory,
+    questionStatus,
+    history,
+    setQuestionStatus
+  );
 
   return (
     <Flex
@@ -60,7 +46,10 @@ export function PlayQuiz(p: {
     >
       {questionStatus === "unanswered" && (
         <Box position={"absolute"} top={50} right={50}>
-          <Timer max={questionSecTimer} onFinished={failQuestion} />
+          <Timer
+            max={questionSecTimer}
+            onFinished={playQuizUtility.failQuestion}
+          />
         </Box>
       )}
 
@@ -71,7 +60,7 @@ export function PlayQuiz(p: {
       />
 
       <Heading fontSize={"3xl"} mt={50} mb={20} textAlign={"center"}>
-        {decodeHtmlEntities(currentQuizItem.question)}
+        {playQuizUtility.decodeHtmlEntities(currentQuizItem.question)}
       </Heading>
 
       <RadioGroup.Root
@@ -94,9 +83,9 @@ export function PlayQuiz(p: {
               <RadioGroup.ItemHiddenInput />
               <RadioGroup.ItemIndicator />
               <RadioGroup.ItemText
-                color={generateQuestionColor(availableAnswer)}
+                color={playQuizUtility.generateQuestionColor(availableAnswer)}
               >
-                {decodeHtmlEntities(availableAnswer)}
+                {playQuizUtility.decodeHtmlEntities(availableAnswer)}
               </RadioGroup.ItemText>
             </RadioGroup.Item>
           ))}
@@ -110,7 +99,7 @@ export function PlayQuiz(p: {
           loop={false}
           style={{ marginTop: 100, height: 150 }}
           autoplay
-          dotLottieRefCallback={dotLottieRefCallback}
+          dotLottieRefCallback={playQuizUtility.dotLottieRefCallback}
         />
       )}
     </Flex>
