@@ -1,31 +1,35 @@
 import { useEffect, useState } from "react";
 import type { DotLottiePlayer, QuizItem } from "../types/quis-types";
-import {
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  RadioGroup,
-  SimpleGrid,
-} from "@chakra-ui/react";
+import { Box, Flex, Heading, RadioGroup, SimpleGrid } from "@chakra-ui/react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import validAnim from "../assets/valid.json?url";
 import invalidAnim from "../assets/invalid.json?url";
 import { Timer } from "./Timer";
+import { ProgressBar } from "../components/ProgressBar";
 
 export function PlayQuiz(p: {
   quiz: QuizItem[];
   onFinished: (history: boolean[]) => void;
 }) {
   const questionSecTimer = 20;
-  const [currentQuizItemIndex, setCurrentQuizItemIndex] = useState<number>(0);
 
-  const currentQuizItem = p.quiz[currentQuizItemIndex];
+  const [currentQuizItemIndex, setCurrentQuizItemIndex] = useState<number>(0);
 
   const [history, setHistory] = useState<boolean[]>([]);
 
   // Available answers handler
   const [availableAnswers, setAvailableAnswers] = useState<string[]>([]);
+
+  const [answer, setAnswer] = useState<string | null>(null);
+
+  const [questionStatus, setQuestionStatus] = useState<
+    "valid" | "invalid" | "unanswered"
+  >("unanswered");
+
+  // Dot Lottie handler
+  const [dotLottie, setDotLottie] = useState<DotLottiePlayer | null>(null);
+
+  const currentQuizItem = p.quiz[currentQuizItemIndex];
 
   useEffect(() => {
     setAvailableAnswers(
@@ -34,12 +38,11 @@ export function PlayQuiz(p: {
         ...currentQuizItem.incorrect_answers,
       ].sort(() => Math.random() - 0.5) // Shuffle answers
     );
-  }, [currentQuizItemIndex]);
-
-  const [answer, setAnswer] = useState<string | null>(null);
-  const [questionStatus, setQuestionStatus] = useState<
-    "valid" | "invalid" | "unanswered"
-  >("unanswered");
+  }, [
+    currentQuizItem.correct_answer,
+    currentQuizItem.incorrect_answers,
+    currentQuizItemIndex,
+  ]);
 
   const isValidAnswer = (answer: string): boolean => {
     return answer === currentQuizItem.correct_answer;
@@ -57,14 +60,11 @@ export function PlayQuiz(p: {
     }
   }, [answer]);
 
-  function decodeHtmlEntities(str: string) {
+  const decodeHtmlEntities = (str: string) => {
     const txt = document.createElement("textarea");
     txt.innerHTML = str;
     return txt.value;
-  }
-
-  // Dot Lottie handler
-  const [dotLottie, setDotLottie] = useState<DotLottiePlayer | null>(null);
+  };
 
   useEffect(() => {
     if (!dotLottie) return;
@@ -98,32 +98,17 @@ export function PlayQuiz(p: {
     setDotLottie(dotLottie);
   };
 
-  const renderProgressBar = () => {
-    return (
-      <HStack>
-        {p.quiz.map((quizItem, i) => {
-          return (
-            <Box
-              key={i}
-              height={3}
-              width={25}
-              backgroundColor={
-                i >= currentQuizItemIndex
-                  ? "gray.300"
-                  : history[i]
-                  ? "green.400"
-                  : "red.400"
-              }
-            />
-          );
-        })}
-      </HStack>
-    );
-  };
-
   const failQuestion = () => {
     setHistory([...history, false]);
     setQuestionStatus("invalid");
+  };
+
+  const generateQuestionColor = (availableAnswer: string) => {
+    return questionStatus === "unanswered"
+      ? "black"
+      : isValidAnswer(availableAnswer)
+      ? "green"
+      : "red";
   };
 
   return (
@@ -140,10 +125,16 @@ export function PlayQuiz(p: {
         </Box>
       )}
 
-      {renderProgressBar()}
-      <Heading fontSize={"3xl"} mt={100} mb={20}>
+      <ProgressBar
+        quiz={p.quiz}
+        currentQuizItemIndex={currentQuizItemIndex}
+        history={history}
+      />
+
+      <Heading fontSize={"3xl"} mt={50} mb={20} textAlign={"center"}>
         {decodeHtmlEntities(currentQuizItem.question)}
       </Heading>
+
       <RadioGroup.Root
         value={answer ?? ""}
         onValueChange={(answer) => {
@@ -164,13 +155,7 @@ export function PlayQuiz(p: {
               <RadioGroup.ItemHiddenInput />
               <RadioGroup.ItemIndicator />
               <RadioGroup.ItemText
-                color={
-                  questionStatus === "unanswered"
-                    ? "black"
-                    : isValidAnswer(availableAnswer)
-                    ? "green"
-                    : "red"
-                }
+                color={generateQuestionColor(availableAnswer)}
               >
                 {decodeHtmlEntities(availableAnswer)}
               </RadioGroup.ItemText>

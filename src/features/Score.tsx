@@ -1,6 +1,7 @@
-import { Button, Flex, Heading, Icon, Text } from "@chakra-ui/react";
-import { number } from "framer-motion";
+import { Flex, Heading, Text } from "@chakra-ui/react";
 import { HiPlay } from "react-icons/hi";
+import { KooizButton } from "../components/KooizButton";
+import { KooizTitle } from "../components/KooizTitle";
 
 export function Score(p: { history: boolean[]; onNext: () => void }) {
   const rightAnswers = p.history.filter(
@@ -30,9 +31,8 @@ export function Score(p: { history: boolean[]; onNext: () => void }) {
       margin={"auto"}
       width={"80%"}
     >
-      <Heading fontSize={"3xl"} mt={100} mb={20}>
-        Score
-      </Heading>
+      <KooizTitle>Score</KooizTitle>
+
       <Heading fontSize={"xl"} mt={"5"}>
         {rightAnswers}/{p.history.length}
       </Heading>
@@ -40,14 +40,7 @@ export function Score(p: { history: boolean[]; onNext: () => void }) {
         {renderMessage()}
       </Text>
 
-      <Flex direction="column" alignItems="center">
-        <Button position="absolute" top="80%" onClick={() => p.onNext()}>
-          New Game!
-          <Icon size="lg">
-            <HiPlay />
-          </Icon>
-        </Button>
-      </Flex>
+      <KooizButton onClickNext={() => p.onNext()} icon={HiPlay} />
     </Flex>
   );
 }

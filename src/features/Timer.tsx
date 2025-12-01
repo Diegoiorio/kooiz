@@ -19,7 +19,7 @@ export function Timer(p: { max: number; onFinished: () => void }) {
       p.onFinished();
       clearInterval(timer);
     }
-  }, [progress]);
+  }, [p, progress]);
 
   return (
     <ProgressCircle.Root value={progress} max={p.max}>

@@ -1,22 +1,11 @@
-import { Button, Flex, Heading, Slider } from "@chakra-ui/react";
+import { Flex, Slider } from "@chakra-ui/react";
 import { useState } from "react";
-import { Icon } from "@chakra-ui/react";
 import { HiOutlineCube } from "react-icons/hi";
+import { KooizButton } from "../components/KooizButton";
+import type { mark, QtyProps } from "../types/quis-types";
+import { KooizTitle } from "../components/KooizTitle";
 
-interface Props {
-  max: number;
-  min: number;
-  step: number;
-  defaultValue: number;
-  onClickNext: (amount: number) => void;
-}
-
-type mark = {
-  value: number;
-  label: string;
-};
-
-export default function SetQuestionQty(p: Props) {
+export default function SetQuestionQty(p: QtyProps) {
   const [sliderValue, setSliderValue] = useState<number>(p.defaultValue);
 
   // Calculate marks directly in the component
@@ -30,9 +19,7 @@ export default function SetQuestionQty(p: Props) {
   return (
     <>
       <Flex direction="column" alignItems="center">
-        <Heading as="h1" fontSize="3xl" mb={20}>
-          How many questions?
-        </Heading>
+        <KooizTitle>How many questions?</KooizTitle>
 
         <Slider.Root
           width={400}
@@ -55,18 +42,10 @@ export default function SetQuestionQty(p: Props) {
         </Slider.Root>
       </Flex>
 
-      <Flex direction="column" alignItems="center">
-        <Button
-          onClick={() => p.onClickNext(sliderValue)}
-          position="absolute"
-          top="80%"
-        >
-          Set Category
-          <Icon size="lg">
-            <HiOutlineCube />
-          </Icon>
-        </Button>
-      </Flex>
+      <KooizButton
+        onClickNext={() => p.onClickNext(sliderValue)}
+        icon={HiOutlineCube}
+      />
     </>
   );
 }

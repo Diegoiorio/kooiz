@@ -1,14 +1,9 @@
-import {
-  Button,
-  Flex,
-  Heading,
-  Icon,
-  RadioGroup,
-  VStack,
-} from "@chakra-ui/react";
+import { Flex, RadioGroup, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { HiPlay } from "react-icons/hi";
 import { QuizDifficulty } from "../types/quis-types";
+import { KooizTitle } from "../components/KooizTitle";
+import { KooizButton } from "../components/KooizButton";
 
 export function SetQuestionDifficulty(p: {
   onClickNext: (difficulty: QuizDifficulty) => void;
@@ -20,9 +15,7 @@ export function SetQuestionDifficulty(p: {
   return (
     <>
       <Flex direction="column" alignItems="center">
-        <Heading as="h1" fontSize="3xl" mb={20}>
-          Select difficulty?
-        </Heading>
+        <KooizTitle>Select difficulty?</KooizTitle>
       </Flex>
 
       <RadioGroup.Root
@@ -42,18 +35,10 @@ export function SetQuestionDifficulty(p: {
         </VStack>
       </RadioGroup.Root>
 
-      <Flex direction="column" alignItems="center">
-        <Button
-          position="absolute"
-          top="80%"
-          onClick={() => p.onClickNext(difficulty)}
-        >
-          Play!
-          <Icon size="lg">
-            <HiPlay />
-          </Icon>
-        </Button>
-      </Flex>
+      <KooizButton
+        onClickNext={() => p.onClickNext(difficulty)}
+        icon={HiPlay}
+      />
     </>
   );
 }
