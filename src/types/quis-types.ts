@@ -79,3 +79,14 @@ export interface ScreenRenderProps {
   setStep: React.Dispatch<React.SetStateAction<Step>>;
   history: boolean[];
 }
+
+export type PlayQuizDeps = {
+  isValidAnswer: (answer: string) => boolean;
+  setDotLottie: (dotLottie: DotLottiePlayer | null) => void;
+  setHistory: React.Dispatch<React.SetStateAction<boolean[]>>;
+  history: boolean[];
+  questionStatus: "valid" | "invalid" | "unanswered";
+  setQuestionStatus: React.Dispatch<
+    React.SetStateAction<"valid" | "invalid" | "unanswered">
+  >;
+};

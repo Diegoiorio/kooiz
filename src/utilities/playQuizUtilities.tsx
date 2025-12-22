@@ -1,55 +1,35 @@
-import type { DotLottiePlayer } from "../types/quis-types";
+import type { DotLottiePlayer, PlayQuizDeps } from "../types/quis-types";
 
-export class PlayQuizUtilities {
-  protected isValidAnswer: (answer: string) => boolean;
-  protected setDotLottie: (
-    value: React.SetStateAction<DotLottiePlayer | null>
-  ) => void;
-  protected setHistory: (value: React.SetStateAction<boolean[]>) => void;
-  protected questionStatus: "valid" | "invalid" | "unanswered";
-  protected history: boolean[];
-  protected setQuestionStatus: (
-    value: React.SetStateAction<"valid" | "invalid" | "unanswered">
-  ) => void;
+export function createPlayQuizUtilities(deps: PlayQuizDeps) {
+  const decodeHtmlEntities = (str: string): string => {
+    if (typeof window === "undefined") return str; // safety per SSR/test
 
-  constructor(
-    isValidAnswer: (answer: string) => boolean,
-    setDotLottie: (value: React.SetStateAction<DotLottiePlayer | null>) => void,
-    setHistory: (value: React.SetStateAction<boolean[]>) => void,
-    questionStatus: "valid" | "invalid" | "unanswered",
-    history: boolean[],
-    setQuestionStatus: (
-      value: React.SetStateAction<"valid" | "invalid" | "unanswered">
-    ) => void
-  ) {
-    this.isValidAnswer = isValidAnswer;
-    this.setDotLottie = setDotLottie;
-    this.setHistory = setHistory;
-    this.questionStatus = questionStatus;
-    this.history = history;
-    this.setQuestionStatus = setQuestionStatus;
-  }
-
-  decodeHtmlEntities = (str: string) => {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = str;
-    return txt.value;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(str, "text/html");
+    return doc.documentElement.textContent ?? "";
   };
 
-  dotLottieRefCallback = (dotLottie: DotLottiePlayer | null) => {
-    this.setDotLottie(dotLottie);
+  const dotLottieRefCallback = (dotLottie: DotLottiePlayer | null): void => {
+    deps.setDotLottie(dotLottie);
   };
 
-  failQuestion = () => {
-    this.setHistory([...this.history, false]);
-    this.setQuestionStatus("invalid");
+  const failQuestion = (): void => {
+    deps.setHistory([...deps.history, false]);
+    deps.setQuestionStatus("invalid");
   };
 
-  generateQuestionColor = (availableAnswer: string) => {
-    return this.questionStatus === "unanswered"
+  const generateQuestionColor = (availableAnswer: string): string => {
+    return deps.questionStatus === "unanswered"
       ? "black"
-      : this.isValidAnswer(availableAnswer)
+      : deps.isValidAnswer(availableAnswer)
       ? "green"
       : "red";
+  };
+
+  return {
+    decodeHtmlEntities,
+    dotLottieRefCallback,
+    failQuestion,
+    generateQuestionColor,
   };
 }

@@ -6,7 +6,8 @@ import invalidAnim from "../assets/invalid.json?url";
 import { Timer } from "./Timer";
 import { ProgressBar } from "../components/ProgressBar";
 import { usePlayQuizState } from "../hooks/usePlayQuizState";
-import { PlayQuizUtilities } from "../utilities/playQuizUtilities";
+import { createPlayQuizUtilities } from "../utilities/playQuizUtilities";
+import { useMemo } from "react";
 
 export function PlayQuiz(p: {
   quiz: QuizItem[];
@@ -27,13 +28,26 @@ export function PlayQuiz(p: {
     currentQuizItem,
   } = usePlayQuizState(p.quiz, p.onFinished);
 
-  const playQuizUtility = new PlayQuizUtilities(
-    isValidAnswer,
-    setDotLottie,
-    setHistory,
-    questionStatus,
-    history,
-    setQuestionStatus
+  // Use useMemo to avoid recreating playQuizUtility on every render.
+  // playQuizUtility will be recreated only if one of its dependencies changes.
+  const playQuizUtility = useMemo(
+    () =>
+      createPlayQuizUtilities({
+        isValidAnswer,
+        setDotLottie,
+        setHistory,
+        questionStatus,
+        history,
+        setQuestionStatus,
+      }),
+    [
+      isValidAnswer,
+      setDotLottie,
+      setHistory,
+      questionStatus,
+      history,
+      setQuestionStatus,
+    ]
   );
 
   return (
